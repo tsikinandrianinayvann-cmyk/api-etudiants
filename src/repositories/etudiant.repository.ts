@@ -1,47 +1,56 @@
-import { Etudiant } from '../models/etudiant.model';
+import { Etudiant } from "../models/etudiant.model";
 
-class EtudiantRepository {
-  private etudiants: Etudiant[] = [
-    { id: 1, nom: 'Dupont', prenom: 'Alice' },
-    { id: 2, nom: 'Martin', prenom: 'Bob' }
-  ];
+let etudiants: Etudiant[] = [
+  { id: 1, nom: "Dupont", prenom: "Alice", email: "alice.dupont@email.com", age: 20 },
+  { id: 2, nom: "Martin", prenom: "Bob", email: "bob.martin@email.com", age: 22 },
+  { id: 3, nom: "Bernard", prenom: "Clara", email: "clara.bernard@email.com" }
+];
 
+let prochainId = 4;
+
+export class EtudiantRepository {
   findAll(): Etudiant[] {
-    return this.etudiants;
+    return etudiants;
   }
 
   findById(id: number): Etudiant | undefined {
-    return this.etudiants.find(e => e.id === id);
+    return etudiants.find(e => e.id === id);
   }
 
-  create(nom: string, prenom: string): Etudiant {
-    const newId = this.etudiants.length > 0 ? this.etudiants[this.etudiants.length - 1].id + 1 : 1;
-    const nouvelEtudiant: Etudiant = { id: newId, nom, prenom };
-    this.etudiants.push(nouvelEtudiant);
+  create(data: Omit<Etudiant, "id">): Etudiant {
+    const nouvelEtudiant: Etudiant = {
+      id: prochainId++,
+      ...data
+    };
+    etudiants.push(nouvelEtudiant);
     return nouvelEtudiant;
   }
 
-  update(id: number, nom: string, prenom: string): Etudiant | null {
-    const index = this.etudiants.findIndex(e => e.id === id);
+  update(id: number, data: Omit<Etudiant, "id">): Etudiant | null {
+    const index = etudiants.findIndex(e => e.id === id);
     if (index === -1) return null;
-    this.etudiants[index] = { id, nom, prenom };
-    return this.etudiants[index];
+
+    etudiants[index] = { id, ...data };
+    return etudiants[index];
   }
 
-  updatePartial(id: number, nom?: string, prenom?: string): Etudiant | null {
-    const etudiant = this.findById(id);
+  partialUpdate(id: number, data: Partial<Etudiant>): Etudiant | null {
+    const etudiant = etudiants.find(e => e.id === id);
     if (!etudiant) return null;
-    if (nom) etudiant.nom = nom;
-    if (prenom) etudiant.prenom = prenom;
+
+    if (data.nom !== undefined) etudiant.nom = data.nom;
+    if (data.prenom !== undefined) etudiant.prenom = data.prenom;
+    if (data.email !== undefined) etudiant.email = data.email;
+    if (data.age !== undefined) etudiant.age = data.age;
+
     return etudiant;
   }
 
-  delete(id: number): boolean {
-    const index = this.etudiants.findIndex(e => e.id === id);
-    if (index === -1) return false;
-    this.etudiants.splice(index, 1);
-    return true;
+  delete(id: number): Etudiant | null {
+    const index = etudiants.findIndex(e => e.id === id);
+    if (index === -1) return null;
+
+    const [supprime] = etudiants.splice(index, 1);
+    return supprime;
   }
 }
-
-export const etudiantRepository = new EtudiantRepository();
