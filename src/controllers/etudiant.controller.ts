@@ -1,65 +1,100 @@
-import { Request, Response, NextFunction } from 'express';
-import { etudiantService } from '../services/etudiant.service';
+import { Request, Response, NextFunction } from "express";
+import { EtudiantService } from "../services/etudiant.service";
+import { createError } from "../middlewares/errorHandler";
+
+const service = new EtudiantService();
 
 export class EtudiantController {
-  static getAll(req: Request, res: Response, next: NextFunction) {
+  getAll(req: Request, res: Response) {
+    const etudiants = service.getAll();
+    res.status(200).json({
+      success: true,
+      count: etudiants.length,
+      data: etudiants
+    });
+  }
+
+  getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = etudiantService.getAll();
-      res.status(200).json(data);
-    } catch (err) {
-      next(err);
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        throw createError(400, "L'ID doit être un nombre");
+      }
+
+      const etudiant = service.getById(id);
+      res.status(200).json({
+        success: true,
+        data: etudiant
+      });
+    } catch (error) {
+      next(error);
     }
   }
 
-  static getById(req: Request, res: Response, next: NextFunction) {
+  create(req: Request, res: Response, next: NextFunction) {
     try {
-      const id = parseInt(req.params.id, 10);
-      const data = etudiantService.getById(id);
-      res.status(200).json(data);
-    } catch (err) {
-      next(err);
+      const etudiant = service.create(req.body);
+      res.status(201).json({
+        success: true,
+        message: "Étudiant créé avec succès",
+        data: etudiant
+      });
+    } catch (error) {
+      next(error);
     }
   }
 
-  static create(req: Request, res: Response, next: NextFunction) {
+  update(req: Request, res: Response, next: NextFunction) {
     try {
-      const { nom, prenom } = req.body;
-      const data = etudiantService.create(nom, prenom);
-      res.status(201).json(data);
-    } catch (err) {
-      next(err);
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        throw createError(400, "L'ID doit être un nombre");
+      }
+
+      const etudiant = service.update(id, req.body);
+      res.status(200).json({
+        success: true,
+        message: "Étudiant modifié complètement",
+        data: etudiant
+      });
+    } catch (error) {
+      next(error);
     }
   }
 
-  static update(req: Request, res: Response, next: NextFunction) {
+  partialUpdate(req: Request, res: Response, next: NextFunction) {
     try {
-      const id = parseInt(req.params.id, 10);
-      const { nom, prenom } = req.body;
-      const data = etudiantService.update(id, nom, prenom);
-      res.status(200).json(data);
-    } catch (err) {
-      next(err);
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        throw createError(400, "L'ID doit être un nombre");
+      }
+
+      const etudiant = service.partialUpdate(id, req.body);
+      res.status(200).json({
+        success: true,
+        message: "Étudiant modifié partiellement",
+        data: etudiant
+      });
+    } catch (error) {
+      next(error);
     }
   }
 
-  static updatePartial(req: Request, res: Response, next: NextFunction) {
+  delete(req: Request, res: Response, next: NextFunction) {
     try {
-      const id = parseInt(req.params.id, 10);
-      const { nom, prenom } = req.body;
-      const data = etudiantService.updatePartial(id, nom, prenom);
-      res.status(200).json(data);
-    } catch (err) {
-      next(err);
-    }
-  }
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        throw createError(400, "L'ID doit être un nombre");
+      }
 
-  static delete(req: Request, res: Response, next: NextFunction) {
-    try {
-      const id = parseInt(req.params.id, 10);
-      etudiantService.delete(id);
-      res.status(204).send();
-    } catch (err) {
-      next(err);
+      const etudiant = service.delete(id);
+      res.status(200).json({
+        success: true,
+        message: "Étudiant supprimé avec succès",
+        data: etudiant
+      });
+    } catch (error) {
+      next(error);
     }
   }
 }

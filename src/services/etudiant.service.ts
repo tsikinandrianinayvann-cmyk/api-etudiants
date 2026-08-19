@@ -1,63 +1,54 @@
-import { etudiantRepository } from '../repositories/etudiant.repository';
-import { Etudiant, CustomError } from '../models/etudiant.model';
+import { Etudiant } from "../models/etudiant.model";
+import { EtudiantRepository } from "../repositories/etudiant.repository";
+import { createError } from "../middlewares/errorHandler";
 
-class EtudiantService {
+const repository = new EtudiantRepository();
+
+export class EtudiantService {
   getAll(): Etudiant[] {
-    return etudiantRepository.findAll();
+    return repository.findAll();
   }
 
   getById(id: number): Etudiant {
-    const etudiant = etudiantRepository.findById(id);
+    const etudiant = repository.findById(id);
     if (!etudiant) {
-      const err: CustomError = new Error('Étudiant non trouvé');
-      err.status = 404;
-      throw err;
+      throw createError(404, `Étudiant avec l'ID ${id} non trouvé`);
     }
     return etudiant;
   }
 
-  create(nom?: string, prenom?: string): Etudiant {
-    if (!nom || !prenom) {
-      const err: CustomError = new Error('Le nom et le prénom sont requis');
-      err.status = 400;
-      throw err;
+  create(data: { nom: string; prenom: string; email: string; age?: number }): Etudiant {
+    if (!data.nom || !data.prenom || !data.email) {
+      throw createError(400, "Les champs nom, prenom et email sont obligatoires");
     }
-    return etudiantRepository.create(nom, prenom);
+    return repository.create(data);
   }
 
-  update(id: number, nom?: string, prenom?: string): Etudiant {
-    if (!nom || !prenom) {
-      const err: CustomError = new Error('Remplacement complet requis : nom et prénom obligatoires');
-      err.status = 400;
-      throw err;
+  update(id: number, data: { nom: string; prenom: string; email: string; age?: number }): Etudiant {
+    if (!data.nom || !data.prenom || !data.email) {
+      throw createError(400, "Avec PUT, tous les champs (nom, prenom, email) sont obligatoires");
     }
-    const updated = etudiantRepository.update(id, nom, prenom);
+
+    const updated = repository.update(id, data);
     if (!updated) {
-      const err: CustomError = new Error('Étudiant non trouvé');
-      err.status = 404;
-      throw err;
+      throw createError(404, `Étudiant avec l'ID ${id} non trouvé`);
     }
     return updated;
   }
 
-  updatePartial(id: number, nom?: string, prenom?: string): Etudiant {
-    const updated = etudiantRepository.updatePartial(id, nom, prenom);
+  partialUpdate(id: number, data: Partial<Etudiant>): Etudiant {
+    const updated = repository.partialUpdate(id, data);
     if (!updated) {
-      const err: CustomError = new Error('Étudiant non trouvé');
-      err.status = 404;
-      throw err;
+      throw createError(404, `Étudiant avec l'ID ${id} non trouvé`);
     }
     return updated;
   }
 
-  delete(id: number): void {
-    const deleted = etudiantRepository.delete(id);
+  delete(id: number): Etudiant {
+    const deleted = repository.delete(id);
     if (!deleted) {
-      const err: CustomError = new Error('Étudiant non trouvé');
-      err.status = 404;
-      throw err;
+      throw createError(404, `Étudiant avec l'ID ${id} non trouvé`);
     }
+    return deleted;
   }
 }
-
-export const etudiantService = new EtudiantService();
